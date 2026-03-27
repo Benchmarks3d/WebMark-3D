@@ -15,6 +15,22 @@
         .hidden { display: none !important; }
         #progress-bar-container { position: absolute; bottom: 20px; left: 10%; width: 80%; height: 10px; background: #333; border-radius: 5px; z-index: 20; display: none; }
         #progress-bar { width: 0%; height: 100%; background: #3b82f6; border-radius: 5px; transition: width 0.1s; }
+        
+        /* Clean Reveal Animations */
+        .reveal-item { 
+            opacity: 0; 
+            transform: translateY(30px) scale(0.95); 
+            filter: blur(15px);
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .reveal-item.show { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+            filter: blur(0px);
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
@@ -22,38 +38,38 @@
 </head>
 <body>
 
-    <!-- Start Screen -->
+    <!-- Startbildschirm -->
     <div id="start-screen" class="ui-layer">
         <h1 class="text-6xl font-extrabold mb-4 text-blue-500 tracking-tight">WebMark 3D</h1>
         
         <div class="max-w-2xl text-center px-6 mb-10">
-            <p class="text-xl text-gray-200 mb-6 font-semibold">The Professional Web Graphics Assessment Tool</p>
+            <p class="text-xl text-gray-200 mb-6 font-semibold">The Professional Graphics Benchmark</p>
             
             <p class="text-gray-400 mb-8 leading-relaxed">
-                WebMark 3D is designed to push your hardware to its limits directly within your browser. 
-                By combining intense 3D rendering with complex mathematical background tasks, we provide 
-                a comprehensive look at your device's performance profile.
+                WebMark 3D tests your hardware directly in your browser. 
+                Combining 3D rendering with heavy background computations 
+                to determine your device's true performance.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm text-gray-300 mb-8">
                 <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
                     <span class="text-blue-400 font-bold block mb-1 uppercase tracking-wider text-xs">GPU Stress Test</span>
-                    Renders 2,500+ high-fidelity Torus Knot geometries with dynamic lighting, shadows, and fog effects to measure frame output.
+                    Renders 2,500+ complex geometries with dynamic lighting.
                 </div>
                 <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
                     <span class="text-green-400 font-bold block mb-1 uppercase tracking-wider text-xs">CPU Multi-Threading</span>
-                    Executes extreme computational load across all available cores using Web Workers to test processing stability and speed.
+                    Maximum load on all cores via high-performance Web Workers.
                 </div>
             </div>
 
-            <p class="text-gray-300 font-medium mb-4 italic">Select the number of benchmark iterations:</p>
+            <p class="text-gray-300 font-medium mb-4 italic">Select iterations:</p>
             
             <div class="flex items-center justify-center gap-4 bg-gray-800 p-2 rounded-full border border-gray-700 w-fit mx-auto shadow-xl">
                 <button onclick="changeRuns(-1)" class="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 text-white font-bold text-2xl flex items-center justify-center transition active:scale-95">-</button>
                 <div class="text-white font-bold text-2xl min-w-[4rem] text-center"><span id="run-counter-display">1</span></div>
                 <button onclick="changeRuns(1)" class="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 text-white font-bold text-2xl flex items-center justify-center transition active:scale-95">+</button>
             </div>
-            <p id="est-time" class="mt-4 text-gray-500 text-sm font-mono">Total duration: approx. 10 seconds</p>
+            <p id="est-time" class="mt-4 text-gray-500 text-sm font-mono">Duration: approx. 10 seconds</p>
         </div>
 
         <button id="btn-start" onclick="startBenchmark()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-12 rounded-full text-2xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition transform hover:scale-105 active:scale-95">
@@ -67,7 +83,7 @@
         <div id="progress-bar"></div>
     </div>
 
-    <!-- Persistent HUD (Always visible) -->
+    <!-- HUD -->
     <div id="hud" class="absolute top-0 left-0 w-full h-full pointer-events-none p-6 z-20 flex justify-between items-start">
         <div class="text-white text-2xl font-mono drop-shadow-md bg-black/50 p-4 rounded-lg pointer-events-auto border border-white/10 min-w-[200px]">
             <div>FPS: <span id="hud-fps" class="text-green-400">0</span></div>
@@ -84,55 +100,56 @@
         </div>
     </div>
 
-    <!-- Results Screen -->
+    <!-- Ergebnisanzeige -->
     <div id="result-screen" class="ui-layer hidden overflow-y-auto py-10">
-        <h2 class="text-4xl font-bold mb-8 text-white mt-10">Benchmark Results</h2>
+        <h2 class="text-4xl font-bold mb-12 text-white mt-10 reveal-item">Benchmark Results</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-6xl px-4 text-center mb-8">
-            <div class="md:col-span-2 bg-gray-800 p-6 rounded-xl border border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)] min-w-0 flex flex-col justify-center">
-                <p class="text-gray-400 text-sm uppercase tracking-wider mb-1 font-bold">Total Score</p>
-                <p id="score-total" class="text-3xl sm:text-4xl lg:text-5xl font-black text-blue-400 whitespace-nowrap overflow-hidden text-ellipsis mb-2">0</p>
-                <p class="text-gray-400 text-xs uppercase font-bold border-t border-gray-700 pt-2">Max FPS: <span id="score-max-fps" class="text-blue-300">0</span></p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl px-4 text-center mb-12">
+            <div class="md:col-span-2 bg-gray-800 p-8 rounded-2xl border border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] min-w-0 flex flex-col justify-center reveal-item">
+                <p class="text-gray-400 text-sm uppercase tracking-wider mb-2 font-bold">Total Score</p>
+                <p id="score-total" class="text-4xl sm:text-5xl lg:text-7xl font-black text-blue-400 mb-4">0</p>
+                <p class="text-gray-400 text-xs uppercase font-bold border-t border-gray-700 pt-4">Max FPS: <span id="score-max-fps" class="text-blue-300">0</span></p>
             </div>
             
-            <div class="md:col-span-1 bg-gray-800 p-6 rounded-xl border border-gray-700 min-w-0">
+            <div class="md:col-span-1 bg-gray-800 p-8 rounded-2xl border border-gray-700 min-w-0 reveal-item">
                 <p class="text-gray-400 text-sm uppercase tracking-wider mb-2">Average FPS</p>
-                <p id="score-fps" class="text-3xl sm:text-4xl font-bold text-green-400 whitespace-nowrap">0</p>
+                <p id="score-fps" class="text-4xl sm:text-5xl font-bold text-green-400">0</p>
             </div>
             
-            <div class="md:col-span-1 bg-gray-800 p-6 rounded-xl border border-gray-700 min-w-0">
+            <div class="md:col-span-1 bg-gray-800 p-8 rounded-2xl border border-gray-700 min-w-0 reveal-item">
                 <p class="text-gray-400 text-sm uppercase tracking-wider mb-2">Total Frames</p>
-                <p id="score-frames" class="text-3xl sm:text-4xl font-bold text-purple-400 whitespace-nowrap">0</p>
+                <p id="score-frames" class="text-4xl sm:text-5xl font-bold text-purple-400">0</p>
             </div>
         </div>
 
-        <div id="individual-runs-container" class="w-full max-w-4xl px-4 mb-8 hidden">
-            <h3 class="text-xl font-bold text-white mb-4 text-left border-b border-gray-600 pb-2">Run History</h3>
-            <div id="individual-runs-list" class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            </div>
+        <div id="individual-runs-container" class="w-full max-w-4xl px-4 mb-12 hidden reveal-item">
+            <h3 class="text-xl font-bold text-white mb-6 text-left border-b border-gray-600 pb-2 italic">Individual Runs</h3>
+            <div id="individual-runs-list" class="grid grid-cols-2 md:grid-cols-5 gap-4"></div>
         </div>
 
-        <div class="w-full max-w-4xl px-4 grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                <h3 class="text-xl font-bold text-white mb-2 italic">FPS Stability (100ms)</h3>
+        <div class="w-full max-w-5xl px-4 grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 reveal-item">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+                <h3 class="text-xl font-bold text-white mb-4 italic">FPS Stability</h3>
                 <canvas id="fpsChart"></canvas>
             </div>
-            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 flex flex-col">
-                <h3 class="text-xl font-bold text-white mb-2 flex justify-between items-center border-b border-gray-600 pb-2">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 flex flex-col">
+                <h3 class="text-xl font-bold text-white mb-4 flex justify-between items-center border-b border-gray-600 pb-2">
                     <span>Recent Scores</span>
-                    <span class="text-sm text-blue-400 bg-blue-900/30 px-2 py-1 rounded font-mono">Avg: <span id="avg-score-display">0</span></span>
+                    <div class="flex items-center gap-3">
+                        <button onclick="clearScores()" class="text-[10px] bg-red-900/40 hover:bg-red-800/60 text-red-300 px-2 py-1 rounded border border-red-700/50 uppercase font-bold transition">Reset</button>
+                        <span class="text-sm text-blue-400 bg-blue-900/30 px-2 py-1 rounded font-mono">Avg: <span id="avg-score-display">0</span></span>
+                    </div>
                 </h3>
-                <ul id="highscore-list" class="text-left text-gray-300 space-y-2 overflow-y-auto max-h-48 pr-2 custom-scrollbar"></ul>
+                <ul id="highscore-list" class="text-left text-gray-300 space-y-3 overflow-y-auto max-h-56 pr-2 custom-scrollbar"></ul>
             </div>
         </div>
 
-        <button onclick="resetApp()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-10 rounded-full transition mb-10 shadow-lg">
+        <button onclick="resetApp()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-12 rounded-full transition mb-20 shadow-xl reveal-item scale-110">
             Repeat Benchmark
         </button>
     </div>
 
     <script>
-        // Global variables
         let scene, camera, renderer, controls;
         let baseGeometry, baseMaterial;
         let objects = [];
@@ -141,16 +158,10 @@
         let calibrationPhase = 0; 
         let animationId;
         
-        // Menu animation state
-        let menuPulseDirection = 'down'; 
-        
         const TEST_DURATION = 10;
-        const CALIBRATION_PHASE_1_DUR = 3; 
-        const CALIBRATION_STABILITY_WAIT = 2000; // 2 seconds stability
-        const CALIBRATION_PHASE_3_DUR = 3; 
         const OBJECT_COUNT = 2500; 
-        const MENU_MIN_OBJECTS = 5;
-        const MENU_MAX_OBJECTS = 1000; 
+        const CALIBRATION_STEP_DUR = 6;  // Auf- und Abbau (6 Sek)
+        const EMPTY_WAIT_DUR = 3000;     // Ruhephase bei 0 Objekten (3 Sek)
         
         let selectedRuns = 1;
         let currentRun = 1;
@@ -169,7 +180,6 @@
         let workers = [];
         let chartInstance = null;
 
-        // UI references
         const startScreen = document.getElementById('start-screen');
         const resultScreen = document.getElementById('result-screen');
         const canvasContainer = document.getElementById('canvas-container');
@@ -192,25 +202,18 @@
             if (scene) return;
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x000000, 0.002);
-            
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 250; 
-            
             renderer = new THREE.WebGLRenderer({ antialias: false }); 
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
             canvasContainer.appendChild(renderer.domElement);
-            
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.autoRotate = true; 
             controls.autoRotateSpeed = 2.0;
-            controls.enableZoom = false; 
-            controls.enablePan = false;  
-            
             baseGeometry = new THREE.TorusKnotGeometry(2, 0.6, 128, 32);
             baseMaterial = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.2, metalness: 0.8 });
-            
             for(let i=0; i<3; i++) {
                 const light = new THREE.DirectionalLight(0xffffff, 0.8);
                 light.position.set((Math.random() - 0.5) * 100, 50, (Math.random() - 0.5) * 100);
@@ -218,30 +221,22 @@
                 scene.add(light);
             }
             scene.add(new THREE.AmbientLight(0x404040));
-            
             window.addEventListener('resize', onWindowResize, false);
-            
-            let scores = JSON.parse(localStorage.getItem('webmark_scores') || '[]');
-            updateHighscoreUI(scores);
+            updateHighscoreUI(JSON.parse(localStorage.getItem('webmark_scores') || '[]'));
         }
 
         window.onload = () => {
             init3D();
             spawnObjects(10); 
             lastFrameTime = performance.now();
-            lastShortTime = lastFrameTime;
             animateMenu();
-            changeRuns(0); 
         };
 
         function changeRuns(delta) {
-            selectedRuns += delta;
-            if (selectedRuns < 1) selectedRuns = 1;
-            if (selectedRuns > 99) selectedRuns = 99;
+            selectedRuns = Math.max(1, Math.min(99, selectedRuns + delta));
             document.getElementById('run-counter-display').innerText = selectedRuns;
             let time = selectedRuns * TEST_DURATION;
-            let timeStr = time >= 60 ? (time / 60).toFixed(1) + " minutes" : time + " seconds";
-            document.getElementById('est-time').innerText = "Total duration: approx. " + timeStr;
+            document.getElementById('est-time').innerText = "Duration: approx. " + (time >= 60 ? (time / 60).toFixed(1) + " min" : time + " sec");
         }
 
         function spawnObjects(count) {
@@ -268,34 +263,22 @@
             startScreen.classList.add('hidden');
             bmDetails.classList.remove('hidden');
             progressContainer.style.display = 'block';
-            progressBar.style.width = '0%'; 
-            
             isCalibrating = true;
             calibrationPhase = 1;
             calibrationTimeMs = 0;
             maxFpsReached = 0;
             lastFpsIncreaseTimeMs = performance.now();
-            hudMaxFps.innerText = "0";
-            
             objects.forEach(obj => scene.remove(obj.mesh));
             objects = [];
             spawnObjects(OBJECT_COUNT);
-
-            hudStatus.innerText = "Reducing Load...";
-            hudStatus.className = "text-yellow-400 text-sm uppercase font-bold mb-1 italic";
-
+            hudStatus.innerText = "Stabilizing Environment...";
             currentRun = 1;
-            document.getElementById('hud-run').innerText = currentRun + ' / ' + selectedRuns;
-            
+            document.getElementById('hud-run').innerText = '1 / ' + selectedRuns;
             fpsHistory = [];
             runResults = [];
             activeTimeMs = 0;
             totalFrames = 0;
             currentRunFrames = 0;
-            lastFrameTime = performance.now();
-            lastShortTime = lastFrameTime;
-            framesThisShortPeriod = 0;
-            
             isRunning = true;
             animateBenchmark();
         }
@@ -304,52 +287,30 @@
             workers.forEach(w => w.terminate());
             workers = [];
             const cores = (navigator.hardwareConcurrency || 4) * 4;
-            const workerCode = `
-                self.onmessage = function(e) {
-                    function stress() {
-                        let val = 0;
-                        for(let i=0; i<10000000; i++) val += Math.sqrt(i) * Math.sin(i);
-                        self.postMessage(val);
-                        setTimeout(stress, 0); 
-                    }
-                    stress();
-                }
-            `;
-            const blob = new Blob([workerCode], {type: 'application/javascript'});
-            const workerUrl = URL.createObjectURL(blob);
+            const blob = new Blob([`self.onmessage = function() { function s() { let v=0; for(let i=0; i<10000000; i++) v+=Math.sqrt(i)*Math.sin(i); self.postMessage(v); setTimeout(s,0); } s(); }`], {type:'application/javascript'});
+            const url = URL.createObjectURL(blob);
             for(let i = 0; i < cores; i++) {
-                let worker = new Worker(workerUrl);
-                worker.postMessage('start');
-                workers.push(worker);
+                let w = new Worker(url);
+                w.postMessage('start');
+                workers.push(w);
             }
         }
 
         function stopEarly() {
             isRunning = false;
-            isCalibrating = false;
             workers.forEach(w => w.terminate());
-            bmDetails.classList.add('hidden');
             resetApp();
         }
 
         function animateMenu() {
             if (isRunning) return;
             animationId = requestAnimationFrame(animateMenu);
-            
             let now = performance.now();
             framesThisShortPeriod++;
             updateFPSHUD(now, false);
-            
-            if (menuPulseDirection === 'down') {
-                removeObjects(5);
-                if (objects.length <= MENU_MIN_OBJECTS) menuPulseDirection = 'up';
-            } else {
-                spawnObjects(5);
-                if (objects.length >= MENU_MAX_OBJECTS) menuPulseDirection = 'down';
-            }
-            
+            if (objects.length < 50) spawnObjects(1);
+            else if (objects.length > 200) removeObjects(1);
             renderScene();
-            lastFrameTime = now;
         }
 
         function animateBenchmark() {
@@ -361,25 +322,21 @@
 
             if (isCalibrating) {
                 if (calibrationPhase === 1) {
-                    // Reduce objects (2500 -> 0)
-                    removeObjects(Math.ceil(OBJECT_COUNT / (CALIBRATION_PHASE_1_DUR * 60))); 
-                    
+                    removeObjects(Math.ceil(OBJECT_COUNT / (CALIBRATION_STEP_DUR * 60))); 
                     if (currentFps > maxFpsReached) {
                         maxFpsReached = currentFps;
                         hudMaxFps.innerText = maxFpsReached;
                         lastFpsIncreaseTimeMs = now;
                     }
-
-                    // Proceed only if objects are gone AND max FPS has plateaued for 2s
-                    if (objects.length === 0 && (now - lastFpsIncreaseTimeMs >= CALIBRATION_STABILITY_WAIT)) {
-                        calibrationPhase = 3; // Skip phase 2 as it's merged into stability check
+                    if (objects.length === 0 && (now - lastFpsIncreaseTimeMs >= EMPTY_WAIT_DUR)) {
+                        calibrationPhase = 3;
                         calibrationTimeMs = 0;
-                        hudStatus.innerText = "Preparing Stress Test...";
+                        hudStatus.innerText = "Priming Stress Load...";
                     }
                 } else if (calibrationPhase === 3) {
                     calibrationTimeMs += deltaTime;
-                    spawnObjects(Math.ceil(OBJECT_COUNT / (CALIBRATION_PHASE_3_DUR * 60)));
-                    if (calibrationTimeMs / 1000 >= CALIBRATION_PHASE_3_DUR) {
+                    spawnObjects(Math.ceil(OBJECT_COUNT / (CALIBRATION_STEP_DUR * 60)));
+                    if (calibrationTimeMs / 1000 >= CALIBRATION_STEP_DUR) {
                         isCalibrating = false;
                         hudStatus.innerText = "Benchmark Active";
                         hudStatus.className = "text-red-500 text-sm uppercase font-bold mb-1 italic";
@@ -399,13 +356,9 @@
             let elapsedSeconds = activeTimeMs / 1000;
             progressBar.style.width = (elapsedSeconds / TEST_DURATION * 100) + '%';
             
-            let tempLoad = 0;
-            for(let i = 0; i < 1000000; i++) { tempLoad += Math.sqrt(i); }
-            window.dummyLoad = tempLoad;
-            
             if (elapsedSeconds >= TEST_DURATION) {
                 let runFps = currentRunFrames / TEST_DURATION;
-                let runScore = Math.floor(runFps * 185000 / 1000) * 1000 + Math.floor(Math.random() * 1000);
+                let runScore = Math.floor(runFps * 185) * 1000 + Math.floor(Math.random() * 1000);
                 runResults.push({ run: currentRun, score: runScore, fps: runFps });
                 if (currentRun < selectedRuns) {
                     currentRun++;
@@ -422,16 +375,12 @@
             renderScene();
         }
 
-        function updateFPSHUD(now, isBenchmarkActive) {
+        function updateFPSHUD(now, isBench) {
             if (now - lastShortTime >= 100) {
                 currentFps = Math.round((framesThisShortPeriod / (now - lastShortTime)) * 1000);
                 hudFps.innerText = currentFps;
-                if(currentFps > 30) hudFps.className = "text-green-400";
-                else if(currentFps > 15) hudFps.className = "text-yellow-400";
-                else hudFps.className = "text-red-400";
-                
-                if (isBenchmarkActive && !isCalibrating) fpsHistory.push(currentFps);
-                
+                hudFps.className = currentFps > 30 ? "text-green-400" : (currentFps > 15 ? "text-yellow-400" : "text-red-400");
+                if (isBench && !isCalibrating) fpsHistory.push(currentFps);
                 framesThisShortPeriod = 0;
                 lastShortTime = now;
             }
@@ -446,73 +395,35 @@
             renderer.render(scene, camera);
         }
 
-        function animateScore(elementId, targetScore) {
-            let current = 0;
-            const element = document.getElementById(elementId);
-            const increment = targetScore / 30;
-            let interval = setInterval(() => {
-                current += increment;
-                if (current >= targetScore) {
-                    current = targetScore;
-                    clearInterval(interval);
-                }
-                element.innerText = Math.round(current).toLocaleString('en-US');
-            }, 30);
+        function animateScore(id, target) {
+            let cur = 0;
+            let el = document.getElementById(id);
+            let inc = target / 40; 
+            let iv = setInterval(() => {
+                cur += inc;
+                if (cur >= target) { cur = target; clearInterval(iv); }
+                el.innerText = Math.round(cur).toLocaleString('en-US');
+            }, 25);
         }
 
         function updateHighscoreUI(scores) {
             const list = document.getElementById('highscore-list');
             const avgDisplay = document.getElementById('avg-score-display');
-            if(scores.length === 0) {
-                list.innerHTML = "<li>No results yet</li>";
-                if(avgDisplay) avgDisplay.innerText = "0";
-                return;
-            }
-            let sum = 0;
-            scores.forEach(s => sum += s.score);
-            let avg = Math.round(sum / scores.length);
-            if(avgDisplay) avgDisplay.innerText = avg.toLocaleString('en-US');
-            list.innerHTML = scores.map((s, i) => `<li>Rank ${i+1}: <span class="text-white font-bold">${s.score.toLocaleString('en-US')}</span> <span class="text-gray-500 text-sm">(${s.date})</span></li>`).join('');
+            if(!scores.length) { list.innerHTML = "<li>No results yet</li>"; return; }
+            let sum = scores.reduce((a, b) => a + b.score, 0);
+            avgDisplay.innerText = Math.round(sum / scores.length).toLocaleString('en-US');
+            list.innerHTML = scores.map((s, i) => `<li>#${i+1}: <span class="text-white font-bold">${s.score.toLocaleString('en-US')}</span> <span class="text-gray-500 text-xs">${s.date}</span></li>`).join('');
         }
 
         function saveHighscores(newScores) {
             let scores = JSON.parse(localStorage.getItem('webmark_scores') || '[]');
-            newScores.forEach(score => {
-                scores.push({ score: score, date: new Date().toLocaleDateString() });
-            });
+            newScores.forEach(s => scores.push({ score: s, date: new Date().toLocaleDateString() }));
             scores.sort((a, b) => b.score - a.score);
-            localStorage.setItem('webmark_scores', JSON.stringify(scores));
+            localStorage.setItem('webmark_scores', JSON.stringify(scores.slice(0, 10)));
             updateHighscoreUI(scores);
         }
 
-        function drawChart() {
-            const ctx = document.getElementById('fpsChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: fpsHistory.map((_, i) => (i * 0.1).toFixed(1) + 's'),
-                    datasets: [{
-                        label: 'FPS',
-                        data: fpsHistory,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 0 
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { 
-                        y: { grid: { color: '#333' }, ticks: { color: '#aaa' } }, 
-                        x: { grid: { color: '#333' }, ticks: { color: '#aaa', maxRotation: 0, autoSkip: true, maxTicksLimit: 20 } } 
-                    },
-                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                    color: '#fff'
-                }
-            });
-        }
+        function clearScores() { localStorage.removeItem('webmark_scores'); updateHighscoreUI([]); }
 
         function endBenchmark() {
             isRunning = false;
@@ -520,35 +431,61 @@
             workers.forEach(w => w.terminate());
             progressContainer.style.display = 'none';
             bmDetails.classList.add('hidden');
-            resultScreen.classList.remove('hidden');
-            const totalDuration = TEST_DURATION * selectedRuns;
-            const avgFps = totalFrames / totalDuration;
-            const finalScore = Math.floor(avgFps * 185000 / 1000) * 1000 + Math.floor(Math.random() * 1000);
             
-            const runsContainer = document.getElementById('individual-runs-container');
-            const runsList = document.getElementById('individual-runs-list');
+            resultScreen.classList.remove('hidden');
+            const items = document.querySelectorAll('.reveal-item');
+            items.forEach(el => el.classList.remove('show'));
+            
+            // Smoother sequential reveal
+            setTimeout(() => {
+                items.forEach((item, i) => {
+                    setTimeout(() => {
+                        item.classList.add('show');
+                    }, i * 400); // 0.4 seconds gap
+                });
+            }, 500);
+
+            const totalDur = TEST_DURATION * selectedRuns;
+            const avgFps = totalFrames / totalDur;
+            const finalScore = Math.floor(avgFps * 185) * 1000 + Math.floor(Math.random() * 1000);
+            
             if (selectedRuns > 1) {
-                runsContainer.classList.remove('hidden');
-                runsList.innerHTML = runResults.map(r => `
-                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center min-w-0">
-                        <p class="text-gray-400 text-xs uppercase mb-1 font-bold">Run ${r.run}</p>
-                        <p class="text-lg font-bold text-blue-400 break-all">${r.score.toLocaleString('en-US')}</p>
-                    </div>
-                `).join('');
-            } else {
-                runsContainer.classList.add('hidden');
+                document.getElementById('individual-runs-container').classList.remove('hidden');
+                document.getElementById('individual-runs-list').innerHTML = runResults.map(r => `<div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center"><p class="text-gray-500 text-xs font-bold">RUN ${r.run}</p><p class="text-lg font-bold text-blue-400">${r.score.toLocaleString()}</p></div>`).join('');
             }
+
             animateScore('score-total', finalScore);
             animateScore('score-fps', avgFps);
             animateScore('score-frames', totalFrames);
             document.getElementById('score-max-fps').innerText = maxFpsReached;
-            drawChart();
-            let allRunScores = runResults.map(r => r.score);
-            saveHighscores(allRunScores);
             
-            menuPulseDirection = 'down';
-            lastFrameTime = performance.now();
-            lastShortTime = lastFrameTime;
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(document.getElementById('fpsChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: fpsHistory.map((_, i) => (i * 0.1).toFixed(1) + 's'),
+                    datasets: [{ 
+                        label: 'FPS', 
+                        data: fpsHistory, 
+                        borderColor: '#3b82f6', 
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true, 
+                        tension: 0.4, 
+                        pointRadius: 0 
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    animation: { duration: 3000 },
+                    scales: { 
+                        y: { grid: { color: '#333' }, ticks: { color: '#777' } }, 
+                        x: { grid: { color: '#333' }, ticks: { color: '#777' } } 
+                    }, 
+                    plugins: { legend: { display: false } } 
+                }
+            });
+
+            saveHighscores(runResults.map(r => r.score));
             animateMenu();
         }
 
@@ -560,8 +497,8 @@
             objects = [];
             spawnObjects(10);
             isRunning = false;
-            isCalibrating = false;
             maxFpsReached = 0;
+            document.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('show'));
         }
     </script>
 </body>
