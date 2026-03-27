@@ -10,13 +10,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; overflow: hidden; background-color: #111; color: white; font-family: sans-serif; }
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        
+        /* Video layer 5 (above 3D objects) */
+        #video-container { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; overflow: hidden; pointer-events: none;
+        }
+        #bg-video { 
+            width: 100%; height: 100%; object-fit: cover; filter: brightness(0.4); 
+        }
+
+        /* 3D layer 2 (below video) */
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        
         .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.85); }
         .hidden { display: none !important; }
         #progress-bar-container { position: absolute; bottom: 20px; left: 10%; width: 80%; height: 10px; background: #333; border-radius: 5px; z-index: 20; display: none; }
         #progress-bar { width: 0%; height: 100%; background: #3b82f6; border-radius: 5px; transition: width 0.1s; }
         
-        /* Clean Reveal Animations */
         .reveal-item { 
             opacity: 0; 
             transform: translateY(30px) scale(0.95); 
@@ -38,38 +48,38 @@
 </head>
 <body>
 
-    <!-- Startbildschirm -->
+    <!-- Video Background -->
+    <div id="video-container">
+        <video id="bg-video" loop muted playsinline>
+            <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Start Screen -->
     <div id="start-screen" class="ui-layer">
         <h1 class="text-6xl font-extrabold mb-4 text-blue-500 tracking-tight">WebMark 3D</h1>
         
         <div class="max-w-2xl text-center px-6 mb-10">
-            <p class="text-xl text-gray-200 mb-6 font-semibold">The Professional Graphics Benchmark</p>
+            <p class="text-xl text-gray-200 mb-6 font-semibold">The Full System Hardware Benchmark</p>
             
             <p class="text-gray-400 mb-8 leading-relaxed">
-                WebMark 3D tests your hardware directly in your browser. 
-                Combining 3D rendering with heavy background computations 
-                to determine your device's true performance.
+                WebMark 3D performs a complete stress test on your device. 
+                By pushing your <b>CPU, GPU, and RAM</b> to their absolute limits, 
+                it measures the true power of your PC or Smartphone.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm text-gray-300 mb-8">
                 <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
-                    <span class="text-blue-400 font-bold block mb-1 uppercase tracking-wider text-xs">GPU Stress Test</span>
-                    Renders 2,500+ complex geometries with dynamic lighting.
+                    <span class="text-blue-400 font-bold block mb-1 uppercase tracking-wider text-xs">Graphics (GPU)</span>
+                    Renders 2,500+ complex 3D geometries with dynamic lighting.
                 </div>
                 <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
-                    <span class="text-green-400 font-bold block mb-1 uppercase tracking-wider text-xs">CPU Multi-Threading</span>
-                    Maximum load on all cores via high-performance Web Workers.
+                    <span class="text-green-400 font-bold block mb-1 uppercase tracking-wider text-xs">System (CPU & RAM)</span>
+                    Full multi-core load and extreme memory allocation for a total system test.
                 </div>
             </div>
 
-            <p class="text-gray-300 font-medium mb-4 italic">Select iterations:</p>
-            
-            <div class="flex items-center justify-center gap-4 bg-gray-800 p-2 rounded-full border border-gray-700 w-fit mx-auto shadow-xl">
-                <button onclick="changeRuns(-1)" class="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 text-white font-bold text-2xl flex items-center justify-center transition active:scale-95">-</button>
-                <div class="text-white font-bold text-2xl min-w-[4rem] text-center"><span id="run-counter-display">1</span></div>
-                <button onclick="changeRuns(1)" class="w-12 h-12 rounded-full bg-gray-700 hover:bg-gray-600 text-white font-bold text-2xl flex items-center justify-center transition active:scale-95">+</button>
-            </div>
-            <p id="est-time" class="mt-4 text-gray-500 text-sm font-mono">Duration: approx. 10 seconds</p>
+            <p class="mt-4 text-gray-400 text-sm font-mono">Duration: 60 Seconds</p>
         </div>
 
         <button id="btn-start" onclick="startBenchmark()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-12 rounded-full text-2xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition transform hover:scale-105 active:scale-95">
@@ -92,7 +102,7 @@
                 <div id="hud-status" class="text-yellow-400 text-sm uppercase font-bold mb-1 italic">Calibration...</div>
                 <div class="text-sm">Run: <span id="hud-run" class="text-blue-400">1 / 1</span></div>
                 <div id="hud-max-fps-container" class="text-sm">Max FPS: <span id="hud-max-fps" class="text-blue-300">0</span></div>
-                <div class="text-sm">Time: <span id="hud-time">0.0</span> / 10 s</div>
+                <div class="text-sm">Time: <span id="hud-time">0.0</span> / 60 s</div>
                 <div class="mt-4">
                     <button onclick="stopEarly()" class="bg-red-500 hover:bg-red-400 text-white text-xs px-3 py-1.5 rounded font-bold transition">Cancel</button>
                 </div>
@@ -100,7 +110,7 @@
         </div>
     </div>
 
-    <!-- Ergebnisanzeige -->
+    <!-- Results Screen -->
     <div id="result-screen" class="ui-layer hidden overflow-y-auto py-10">
         <h2 class="text-4xl font-bold mb-12 text-white mt-10 reveal-item">Benchmark Results</h2>
         
@@ -120,11 +130,6 @@
                 <p class="text-gray-400 text-sm uppercase tracking-wider mb-2">Total Frames</p>
                 <p id="score-frames" class="text-4xl sm:text-5xl font-bold text-purple-400">0</p>
             </div>
-        </div>
-
-        <div id="individual-runs-container" class="w-full max-w-4xl px-4 mb-12 hidden reveal-item">
-            <h3 class="text-xl font-bold text-white mb-6 text-left border-b border-gray-600 pb-2 italic">Individual Runs</h3>
-            <div id="individual-runs-list" class="grid grid-cols-2 md:grid-cols-5 gap-4"></div>
         </div>
 
         <div class="w-full max-w-5xl px-4 grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 reveal-item">
@@ -158,12 +163,12 @@
         let calibrationPhase = 0; 
         let animationId;
         
-        const TEST_DURATION = 10;
+        const TEST_DURATION = 60; 
         const OBJECT_COUNT = 2500; 
-        const CALIBRATION_STEP_DUR = 6;  // Auf- und Abbau (6 Sek)
-        const EMPTY_WAIT_DUR = 3000;     // Ruhephase bei 0 Objekten (3 Sek)
+        const CALIBRATION_STEP_DUR = 6; 
+        const EMPTY_WAIT_DUR = 3000;
         
-        let selectedRuns = 1;
+        let selectedRuns = 1; 
         let currentRun = 1;
         let activeTimeMs = 0;
         let calibrationTimeMs = 0;
@@ -179,7 +184,9 @@
         let fpsHistory = [];
         let workers = [];
         let chartInstance = null;
+        let memoryHog = []; 
 
+        const video = document.getElementById('bg-video');
         const startScreen = document.getElementById('start-screen');
         const resultScreen = document.getElementById('result-screen');
         const canvasContainer = document.getElementById('canvas-container');
@@ -201,10 +208,9 @@
         function init3D() {
             if (scene) return;
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.002);
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 250; 
-            renderer = new THREE.WebGLRenderer({ antialias: false }); 
+            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true }); 
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
@@ -230,14 +236,8 @@
             spawnObjects(10); 
             lastFrameTime = performance.now();
             animateMenu();
+            video.play().catch(() => {});
         };
-
-        function changeRuns(delta) {
-            selectedRuns = Math.max(1, Math.min(99, selectedRuns + delta));
-            document.getElementById('run-counter-display').innerText = selectedRuns;
-            let time = selectedRuns * TEST_DURATION;
-            document.getElementById('est-time').innerText = "Duration: approx. " + (time >= 60 ? (time / 60).toFixed(1) + " min" : time + " sec");
-        }
 
         function spawnObjects(count) {
             for (let i = 0; i < count; i++) {
@@ -263,6 +263,11 @@
             startScreen.classList.add('hidden');
             bmDetails.classList.remove('hidden');
             progressContainer.style.display = 'block';
+            
+            video.style.filter = "brightness(1)";
+            video.currentTime = 22; 
+            video.play();
+
             isCalibrating = true;
             calibrationPhase = 1;
             calibrationTimeMs = 0;
@@ -273,12 +278,13 @@
             spawnObjects(OBJECT_COUNT);
             hudStatus.innerText = "Stabilizing Environment...";
             currentRun = 1;
-            document.getElementById('hud-run').innerText = '1 / ' + selectedRuns;
+            document.getElementById('hud-run').innerText = '1 / 1';
             fpsHistory = [];
             runResults = [];
             activeTimeMs = 0;
             totalFrames = 0;
             currentRunFrames = 0;
+            memoryHog = []; 
             isRunning = true;
             animateBenchmark();
         }
@@ -299,6 +305,7 @@
         function stopEarly() {
             isRunning = false;
             workers.forEach(w => w.terminate());
+            memoryHog = []; 
             resetApp();
         }
 
@@ -331,7 +338,7 @@
                     if (objects.length === 0 && (now - lastFpsIncreaseTimeMs >= EMPTY_WAIT_DUR)) {
                         calibrationPhase = 3;
                         calibrationTimeMs = 0;
-                        hudStatus.innerText = "Priming Stress Load...";
+                        hudStatus.innerText = "Priming Stress Profiles...";
                     }
                 } else if (calibrationPhase === 3) {
                     calibrationTimeMs += deltaTime;
@@ -349,6 +356,14 @@
                 return;
             }
 
+            // Extreme RAM Stress: 8x speed (approx 64 MiB per frame)
+            // We use a try-catch to keep the test running even when RAM is full.
+            try {
+                memoryHog.push(new Float64Array(8000000).fill(Math.random()));
+            } catch (e) {
+                // Browser limit reached - test continues without crashing
+            }
+
             activeTimeMs += deltaTime;
             totalFrames++;
             currentRunFrames++;
@@ -360,15 +375,9 @@
                 let runFps = currentRunFrames / TEST_DURATION;
                 let runScore = Math.floor(runFps * 185) * 1000 + Math.floor(Math.random() * 1000);
                 runResults.push({ run: currentRun, score: runScore, fps: runFps });
-                if (currentRun < selectedRuns) {
-                    currentRun++;
-                    activeTimeMs = 0;
-                    currentRunFrames = 0;
-                    document.getElementById('hud-run').innerText = currentRun + ' / ' + selectedRuns;
-                } else {
-                    endBenchmark();
-                    return;
-                }
+                
+                endBenchmark();
+                return;
             }
             updateFPSHUD(now, true);
             hudTime.innerText = elapsedSeconds.toFixed(1);
@@ -432,28 +441,25 @@
             progressContainer.style.display = 'none';
             bmDetails.classList.add('hidden');
             
+            video.pause();
+            video.style.filter = "brightness(0.4)";
+
             resultScreen.classList.remove('hidden');
             const items = document.querySelectorAll('.reveal-item');
             items.forEach(el => el.classList.remove('show'));
             
-            // Smoother sequential reveal
             setTimeout(() => {
                 items.forEach((item, i) => {
                     setTimeout(() => {
                         item.classList.add('show');
-                    }, i * 400); // 0.4 seconds gap
+                    }, i * 400); 
                 });
             }, 500);
 
-            const totalDur = TEST_DURATION * selectedRuns;
+            const totalDur = TEST_DURATION;
             const avgFps = totalFrames / totalDur;
             const finalScore = Math.floor(avgFps * 185) * 1000 + Math.floor(Math.random() * 1000);
             
-            if (selectedRuns > 1) {
-                document.getElementById('individual-runs-container').classList.remove('hidden');
-                document.getElementById('individual-runs-list').innerHTML = runResults.map(r => `<div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center"><p class="text-gray-500 text-xs font-bold">RUN ${r.run}</p><p class="text-lg font-bold text-blue-400">${r.score.toLocaleString()}</p></div>`).join('');
-            }
-
             animateScore('score-total', finalScore);
             animateScore('score-fps', avgFps);
             animateScore('score-frames', totalFrames);
@@ -486,6 +492,7 @@
             });
 
             saveHighscores(runResults.map(r => r.score));
+            memoryHog = []; 
             animateMenu();
         }
 
@@ -498,6 +505,10 @@
             spawnObjects(10);
             isRunning = false;
             maxFpsReached = 0;
+            video.currentTime = 0;
+            video.style.filter = "brightness(0.4)";
+            video.play().catch(() => {});
+            memoryHog = []; 
             document.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('show'));
         }
     </script>
